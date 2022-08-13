@@ -2,6 +2,7 @@
 
 namespace App\Packages\wallet\wallet\src\Provider;
 
+use App\Packages\wallet\wallet\src\Enums\AsanpardakhtStatusEnum;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use Tartan\Log\Facades\XLog;
@@ -28,7 +29,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
                 "htran" => random_int(5000, 50000) . time(),
-                "hop" => 310,
+                "hop" => AsanpardakhtStatusEnum::WalletBalanceHop->value,
                 "htime" => time(),
                 "hkey" => $this->getParameters('api_key')
             ];
@@ -91,7 +92,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
                 "htran" => random_int(5000, 50000) . time(),
-                "hop" => 243,
+                "hop" => AsanpardakhtStatusEnum::PayByWalletHop->value,
                 "htime" => time(),
                 "stime" => time(),
                 "hkey" => $this->getParameters('api_key')
@@ -104,15 +105,15 @@ class AsanPardakhtProvider extends AbstractProvider
             $rawResponse = $this->sendInfoToAp($hostRequest, $hRequestSign, self::POST_METHOD, $this->getUrl());
             $responseJson = $this->getHresponseData($rawResponse["hresp"]);
 
-            if ($responseJson['st'] == 0) {
+            if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
                 $this->getTransaction()->setCallBackParameters($responseJson);
-                return [10001, ''];
+                return [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
             }
 
-            if ($responseJson->st == 1332 || $responseJson->st == 1330) { // access denied : 1332, low credit : 1330
-                return [10000, $responseJson->addData->ipgURL];
+            if ($responseJson->st == AsanpardakhtStatusEnum::AccessDeniedRequest->value || $responseJson->st == AsanpardakhtStatusEnum::InsufficientInventory) { // access denied : 1332, low credit : 1330
+                return [AsanpardakhtStatusEnum::AccessDeniedResponse->value, $responseJson->addData->ipgURL];
             } else {
-                return [999, $responseJson->stm];
+                return [AsanpardakhtStatusEnum::FailedResponse->value, $responseJson->stm];
             }
         } catch (ServerException $exception) {
             if ($responseJson != '') {
@@ -121,9 +122,9 @@ class AsanPardakhtProvider extends AbstractProvider
 
             $errorJson = json_decode($exception->getResponse()->getBody()->getContents());
 
-            return [999, $errorJson->description ?? ''];
+            return [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson->description ?? ''];
         } catch (\Exception $exception) {
-            return [999, $exception->getMessage()];
+            return [AsanpardakhtStatusEnum::FailedResponse->value, $exception->getMessage()];
         }
     }
 
@@ -134,11 +135,12 @@ class AsanPardakhtProvider extends AbstractProvider
     public function reverseWalletPaymentResult(): mixed
     {
         $getCallbackParams = $this->getTransaction()->getCallbackParams();
+        
         $arrayData = [
             "ao" => $this->getTransaction()->getPayableAmount(),
             "hi" => $this->getParameters('host_id'),
             "htran" => random_int(5000, 50000) . time(),
-            "hop" => 2003,
+            "hop" => AsanpardakhtStatusEnum::ReverseRequestHop->value,
             "htime" => $getCallbackParams['htime'],
             "stime" => time(),
             "stkn" => $getCallbackParams['stkn'],
@@ -157,15 +159,15 @@ class AsanPardakhtProvider extends AbstractProvider
 
             //----------------------------------successfully reversed-------------------------------------
 
-            if ($responseJson->st == 0) {
+            if ($responseJson->st == AsanpardakhtStatusEnum::SuccessRequest->value) {
                 $this->log('successfully reversed', [], 'info');
 
-                $result = [10001, ''];
+                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
             }
         } catch (ServerException $ex) {
             $this->log($ex->getMessage(), [], 'error');
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-            $result = [999, $errorJson];
+            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
         }
 
         return $result;
@@ -183,7 +185,7 @@ class AsanPardakhtProvider extends AbstractProvider
             "ao" => $getCallbackParams['ao'],
             "hi" => $this->getParameters('host_id'),
             "htran" => $getCallbackParams['htran'],
-            "hop" => 2001,
+            "hop" => AsanpardakhtStatusEnum::VerifyRequestHop->value,
             "htime" => $getCallbackParams['htime'],
             "stime" => time(),
             "stkn" => $getCallbackParams['stkn'],
@@ -200,12 +202,12 @@ class AsanPardakhtProvider extends AbstractProvider
             $result = $responseJson->st;
 
 //----------------------------------successfully verified-------------------------------------
-            if ($responseJson->st == 0 or $responseJson->st == 2102) {
-                $result = [10001, ''];
+            if ($responseJson->st == AsanpardakhtStatusEnum::SuccessRequest->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenVerified->value) {
+                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-            $result = [999, $errorJson];
+            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
         }
 
         return $result;
@@ -223,7 +225,7 @@ class AsanPardakhtProvider extends AbstractProvider
             "ao" => $getCallbackParams['ao'],
             "hi" => $this->getParameters('host_id'),
             "htran" => $getCallbackParams['htran'],
-            "hop" => 2002,
+            "hop" => AsanpardakhtStatusEnum::SettleRequestHop->value,
             "htime" => $getCallbackParams['htime'],
             "stime" => time(),
             "stkn" => $getCallbackParams['stkn'],
@@ -239,12 +241,12 @@ class AsanPardakhtProvider extends AbstractProvider
             $result = $responseJson->st;
 
             //---------------------Successfully verified--------------------------
-            if ($responseJson->st == 0 or $responseJson->st == 2103) {
-                $result = [10001, ''];
+            if ($responseJson->st == AsanpardakhtStatusEnum::SuccessResponse->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenSettled->value) {
+                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-            $result = [999, $errorJson];
+            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
         }
 
         return $result;
@@ -269,7 +271,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
         XLog::emergency('check balance failure' . ' ' . ' message: ' . $errorMsg);
 
-        return [999, ''];
+        return [AsanpardakhtStatusEnum::FailedResponse->value, ''];
     }
 
 
