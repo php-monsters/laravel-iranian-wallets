@@ -4,6 +4,7 @@ namespace App\Packages\wallet\wallet\src\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
 use Asanpay\Shaparak\Facades\Shaparak;
+use GuzzleHttp\Client;
 use ReflectionClass;
 
 /**
@@ -16,6 +17,8 @@ use ReflectionClass;
  */
 abstract class AbstractProvider
 {
+    const CONNECTION_TIME_OUT = 5;
+
 
     /**
      * @var string
@@ -35,31 +38,34 @@ abstract class AbstractProvider
     /**
      * @var Transaction
      */
-    protected Transaction $transaction;
+    protected $transaction;
 
 
     /**
      * @param array $configs
      * @param string $environment
      * @param Transaction|null $transaction
+     * @param $mobileNumber
      */
     public function __construct(
         array $configs,
         string $environment,
         Transaction $transaction = null,
+        $mobileNumber
     ) {
         $this->environment = $environment;
         $this->setParameters($configs);
-        $this->setCellNumber($transaction->mobile_number);
+        $this->setCellNumber($mobileNumber);
         $this->setTransaction($transaction);
         $this->setUrl(config('wallet.asanpardakht.url'));
     }
+
 
     /**
      * @param $transaction
      * @return void
      */
-    public function setTransaction($transaction): void
+    public function setTransaction($transaction = null): void
     {
         $this->transaction = $transaction;
     }
@@ -96,29 +102,26 @@ abstract class AbstractProvider
      * @param string $hostRequestSign
      * @param $method
      * @param $url
-     * @return string|bool
+     * @return void
      */
-    public function sendInfoToAp(string $hostRequest, string $hostRequestSign, $method, $url): string|bool
+    public function sendInfoToAp(string $hostRequest, string $hostRequestSign, $method, $url)
     {
-        $curl = curl_init();
+        $guzzle = new Client();
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30000,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => '{"hreq":"' . $hostRequest . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
-            CURLOPT_HTTPHEADER => array(
-                "accept: */*",
-                "accept-language: en-US,en;q=0.8",
-                "content-type: application/json",
-            ),
-        ));
+        $rawResponse = $guzzle->$method($url, array(
+                'verify' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ],
+                'body' => '{"hreq":"' . $hostRequest . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
+                'connect_timeout' => self::CONNECTION_TIME_OUT,
+                'read_timeout' => self::CONNECTION_TIME_OUT,
+                'timeout' => self::CONNECTION_TIME_OUT,
+            )
+        );
 
-        return curl_exec($curl);
+        return json_decode($rawResponse->getBody()->getContents(), true);
     }
 
 

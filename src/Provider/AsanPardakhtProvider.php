@@ -33,19 +33,19 @@ class AsanPardakhtProvider extends AbstractProvider
                 "htime" => time(),
                 "hkey" => $this->getParameters('api_key')
             ];
-
             $hostRequest = $this->prepareJsonString($arrayData);
             $hostRequestSign = $this->signRequest($hostRequest);
 
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-            $response = json_decode($rawResponse, true);
-            $responseJson = json_decode($response["hresp"]);
+
+            $responseJson = json_decode($rawResponse["hresp"]);
 
             $credit = 0;
 
             if (property_exists($responseJson, 'wball')) {
                 $credit = $responseJson->wball / 10;
             }
+
             return $credit;
         } catch (ClientException|\Exception $exception) {
             return $this->getBalanceWalletError($exception);
@@ -135,7 +135,7 @@ class AsanPardakhtProvider extends AbstractProvider
     public function reverseWalletPaymentResult(): mixed
     {
         $getCallbackParams = $this->getTransaction()->getCallbackParams();
-        
+
         $arrayData = [
             "ao" => $this->getTransaction()->getPayableAmount(),
             "hi" => $this->getParameters('host_id'),

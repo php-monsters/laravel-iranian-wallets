@@ -19,25 +19,39 @@ class WalletManager extends Manager implements Contracts\Factory
      * @var array
      */
     protected array $runtimeConfig;
+
+    /**
+     * @var string
+     */
     protected string $environment;
+
+    /**
+     * @var string
+     */
     protected string $cellNumber;
-    public Transaction $transaction;
+
+    /**
+     * @var Transaction|null
+     */
+    public Transaction|null $transaction;
 
 
     /**
-     * @param $driver
-     * @param $config
-     * @param $transaction
+     * @param string $driver
+     * @param array $config
+     * @param Transaction|null $transaction
+     * @param string $mobileNumber
      * @return mixed
      */
-    public function with($driver, $config, $transaction = null): mixed
+    public function with(string $driver, array $config, Transaction|null $transaction, string $mobileNumber): mixed
     {
         $this->transaction = $transaction;
-        $this->cellNumber = $this->transaction->mobile_number;
+        $this->cellNumber = $mobileNumber;
 
         if (!empty($config)) {
             $this->runtimeConfig = $config;
         }
+
         return $this->driver($driver);
     }
 
@@ -52,6 +66,7 @@ class WalletManager extends Manager implements Contracts\Factory
         return $this->buildProvider(
             AsanPardakhtProvider::class,
             $config,
+            $this->cellNumber
         );
     }
 
@@ -59,14 +74,16 @@ class WalletManager extends Manager implements Contracts\Factory
     /**
      * @param $provider
      * @param array $config
+     * @param string $mobileNumber
      * @return mixed
      */
-    public function buildProvider($provider, array $config): mixed
+    public function buildProvider($provider, array $config, string $mobileNumber)
     {
         return new $provider(
             $config,
             Arr::get($config, 'mode', config('wallet.mode', 'production')),
             $this->transaction,
+            $mobileNumber
         );
     }
 

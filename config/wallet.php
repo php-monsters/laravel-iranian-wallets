@@ -20,7 +20,6 @@ return [
         'host_id' => '',
         'url' => '',
         'private_key' => '',
-        'debug_private_key' => '',
     ]
 
 ];
