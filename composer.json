@@ -34,7 +34,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Wallet\\Wallet\\": "src"
+            "Wallet\\Wallet\\": "src/"
         }
     },
     "config": {
