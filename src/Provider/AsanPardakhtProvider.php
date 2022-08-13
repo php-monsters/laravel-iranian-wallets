@@ -22,16 +22,18 @@ class AsanPardakhtProvider extends AbstractProvider
     public function checkWalletBalance(): float|int|array
     {
         try {
-            $hostId = $this->getParameters('host_id');
+            $arrayData = [
+                "caurl" => $this->getParameters('callback_url'),
+                "mo" => $this->getCellNumber(),
+                "hi" => $this->getParameters('host_id'),
+                "walet" => 5,
+                "htran" => random_int(5000, 50000) . time(),
+                "hop" => 310,
+                "htime" => time(),
+                "hkey" => $this->getParameters('api_key')
+            ];
 
-            $hostRequest = "{\\\"caurl\\\":\\\"" . $this->getParameters(
-                    'callback_url'
-                ) . "\\\",\\\"mo\\\":\\\"" . $this->getCellNumber(
-                ) . "\\\",\\\"hi\\\":$hostId,\\\"walet\\\":5,\\\"hop\\\":310,\\\"htime\\\":" . time(
-                ) . ",\\\"htran\\\":" . random_int(5000, 50000) . time() . ",\\\"hkey\\\":\\\"" . $this->getParameters(
-                    'api_key'
-                ) . "\\\"}";
-
+            $hostRequest = $this->prepareJsonString($arrayData);
             $hostRequestSign = $this->signRequest($hostRequest);
 
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
@@ -62,16 +64,12 @@ class AsanPardakhtProvider extends AbstractProvider
     {
         $binary_signature = "";
 
-        if (config('wallet.asanpardakht.debug')) {
-            openssl_sign(
-                $input,
-                $binary_signature,
-                config('wallet.asanpardakht.debug_private_key'),
-                OPENSSL_ALGO_SHA256
-            );
-        } else {
-            openssl_sign($input, $binary_signature, config('wallet.asanpardakht.private_key'), OPENSSL_ALGO_SHA256);
-        }
+        openssl_sign(
+            $input,
+            $binary_signature,
+            config('wallet.asanpardakht.debug_private_key'),
+            OPENSSL_ALGO_SHA256
+        );
 
         return '1#1#' . base64_encode($binary_signature);
     }
@@ -85,25 +83,26 @@ class AsanPardakhtProvider extends AbstractProvider
         $responseJson = '';
 
         try {
-            $hostId = $this->getParameters('host_id');
+            $arrayData = [
+                "caurl" => $this->getParameters('callback_url'),
+                "pid" => $this->hashParam($this->transaction->id),
+                "ao" => $this->getTransaction()->getPayableAmount(),
+                "mo" => $this->getCellNumber(),
+                "hi" => $this->getParameters('host_id'),
+                "walet" => 5,
+                "htran" => random_int(5000, 50000) . time(),
+                "hop" => 243,
+                "htime" => time(),
+                "stime" => time(),
+                "hkey" => $this->getParameters('api_key')
+            ];
 
-            $hostRequest = "{\\\"caurl\\\":\\\"" . $this->getParameters(
-                    'callback_url'
-                ) . "\\\", \\\"pid\\\":\\\"" . $this->hashParam(
-                    $this->transaction->id
-                ) . "\\\", \\\"ao\\\":" . $this->getTransaction()->getPayableAmount(
-                ) . ", \\\"mo\\\":\\\"" . $this->getCellNumber(
-                ) . "\\\", \\\"hi\\\":$hostId, \\\"walet\\\":5, \\\"htran\\\":" . random_int(5000, 50000) . time(
-                ) . ", \\\"hop\\\":243, \\\"htime\\\":" . time() . ", \\\"stime\\\":" . time(
-                ) . ", \\\"hkey\\\":\\\"" . $this->getParameters('api_key') . "\\\"}";
+            $hostRequest = $this->prepareJsonString($arrayData);
 
             $hRequestSign = $this->signRequest($hostRequest);
 
             $rawResponse = $this->sendInfoToAp($hostRequest, $hRequestSign, self::POST_METHOD, $this->getUrl());
-
-            $response = json_decode($rawResponse, true);
-
-            $responseJson = json_decode($response["hresp"], true);
+            $responseJson = $this->getHresponseData($rawResponse["hresp"]);
 
             if ($responseJson['st'] == 0) {
                 $this->getTransaction()->setCallBackParameters($responseJson);
@@ -135,18 +134,25 @@ class AsanPardakhtProvider extends AbstractProvider
     public function reverseWalletPaymentResult(): mixed
     {
         $getCallbackParams = $this->getTransaction()->getCallbackParams();
-        $hostId = $this->getParameters('host_id');
+        $arrayData = [
+            "ao" => $this->getTransaction()->getPayableAmount(),
+            "hi" => $this->getParameters('host_id'),
+            "htran" => random_int(5000, 50000) . time(),
+            "hop" => 2003,
+            "htime" => $getCallbackParams['htime'],
+            "stime" => time(),
+            "stkn" => $getCallbackParams['stkn'],
+            "hkey" => $this->getParameters('api_key')
+        ];
 
-        $hostRequest = "{\\\"ao\\\":" . $getCallbackParams['ao'] . ", \\\"hi\\\":$hostId, \\\"htran\\\":" . $getCallbackParams['htran'] . ", \\\"hop\\\":2003, \\\"htime\\\":" . $getCallbackParams['htime'] . ", \\\"stkn\\\":\\\"" . $getCallbackParams['stkn'] . "\\\", \\\"stime\\\":" . time(
-            ) . ", \\\"hkey\\\":\\\"" . $this->getParameters('api_key') . "\\\"}";
+        $hostRequest = $this->prepareJsonString($arrayData);
 
         $hostRequestSign = $this->signRequest($hostRequest);
 
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
 
-            $response = json_decode($rawResponse, true);
-            $responseJson = json_decode($response["hresp"]);
+            $responseJson = json_decode($rawResponse["hresp"]);
             $result = $responseJson->st;
 
             //----------------------------------successfully reversed-------------------------------------
@@ -173,19 +179,23 @@ class AsanPardakhtProvider extends AbstractProvider
     {
         $getCallbackParams = $this->getTransaction()->getCallbackParams();
 
-        $hostId = $this->getParameters('host_id');
-        $apiKey = $this->getParameters('api_key');
+        $arrayData = [
+            "ao" => $getCallbackParams['ao'],
+            "hi" => $this->getParameters('host_id'),
+            "htran" => $getCallbackParams['htran'],
+            "hop" => 2001,
+            "htime" => $getCallbackParams['htime'],
+            "stime" => time(),
+            "stkn" => $getCallbackParams['stkn'],
+            "hkey" => $this->getParameters('api_key')
+        ];
 
-        $hostRequest = "{\\\"ao\\\":" . $getCallbackParams['ao'] . ", \\\"hi\\\":$hostId, \\\"htran\\\":" . $getCallbackParams['htran'] . ", \\\"hop\\\":2001, \\\"htime\\\":" . $getCallbackParams['htime'] . ", \\\"stkn\\\":\\\"" . $getCallbackParams['stkn'] . "\\\", \\\"stime\\\":" . time(
-            ) . ", \\\"hkey\\\":\\\"" . $apiKey . "\\\"}";
+        $hostRequest = $this->prepareJsonString($arrayData);
 
         $hostRequestSign = $this->signRequest($hostRequest);
-
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-
-            $response = json_decode($rawResponse, true);
-            $responseJson = json_decode($response["hresp"]);
+            $responseJson = json_decode($rawResponse["hresp"]);
 
             $result = $responseJson->st;
 
@@ -209,18 +219,23 @@ class AsanPardakhtProvider extends AbstractProvider
     {
         $getCallbackParams = $this->getTransaction()->getCallbackParams();
 
-        $hostId = $this->getParameters('host_id');
-        $apiKey = $this->getParameters('api_key');
+        $arrayData = [
+            "ao" => $getCallbackParams['ao'],
+            "hi" => $this->getParameters('host_id'),
+            "htran" => $getCallbackParams['htran'],
+            "hop" => 2002,
+            "htime" => $getCallbackParams['htime'],
+            "stime" => time(),
+            "stkn" => $getCallbackParams['stkn'],
+            "hkey" => $this->getParameters('api_key')
+        ];
 
-        $hostRequest = "{\\\"ao\\\":" . $getCallbackParams['ao'] . ", \\\"hi\\\":$hostId, \\\"htran\\\":" . $getCallbackParams['htran'] . ", \\\"hop\\\":2002, \\\"htime\\\":" . $getCallbackParams['htime'] . ", \\\"stkn\\\":\\\"" . $getCallbackParams['stkn'] . "\\\", \\\"stime\\\":" . time(
-            ) . ", \\\"hkey\\\":\\\"" . $apiKey . "\\\"}";
+        $hostRequest = $this->prepareJsonString($arrayData);
         $hostRequestSign = $this->signRequest($hostRequest);
-
 
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-            $response = json_decode($rawResponse, true);
-            $responseJson = json_decode($response["hresp"]);
+            $responseJson = json_decode($rawResponse["hresp"]);
             $result = $responseJson->st;
 
             //---------------------Successfully verified--------------------------
@@ -255,5 +270,32 @@ class AsanPardakhtProvider extends AbstractProvider
         XLog::emergency('check balance failure' . ' ' . ' message: ' . $errorMsg);
 
         return [999, ''];
+    }
+
+
+    /**
+     * @param array $data
+     * @return string|array|false
+     */
+    public function prepareJsonString(array $data): string|array|false
+    {
+        return str_replace(
+            ['"{', '}"'],
+            ["{", "}"],
+            json_encode(
+                json_encode($data, JSON_UNESCAPED_SLASHES)
+                ,
+                JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK
+            )
+        );
+    }
+
+    /**
+     * @param $hresp
+     * @return mixed
+     */
+    public function getHresponseData($hresp): mixed
+    {
+        return json_decode($hresp, true);
     }
 }

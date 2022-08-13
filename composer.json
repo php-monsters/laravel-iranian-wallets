@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.1",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-openssl": "*",
@@ -24,7 +24,6 @@
         "ext-bcmath": "*",
         "illuminate/support": ">=8.0",
         "illuminate/view": ">=8.0",
-        "samuraee/easycurl": "^1.0",
         "tartan/laravel-xlog": "^1.2"
     },
     "require-dev": {
