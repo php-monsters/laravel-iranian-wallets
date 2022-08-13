@@ -4,7 +4,7 @@ namespace App\Packages\wallet\wallet\src\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
 use Asanpay\Shaparak\Facades\Shaparak;
-use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
 use ReflectionClass;
 
 /**
@@ -102,26 +102,21 @@ abstract class AbstractProvider
      * @param string $hostRequestSign
      * @param $method
      * @param $url
-     * @return void
+     * @return mixed
      */
-    public function sendInfoToAp(string $hostRequest, string $hostRequestSign, $method, $url)
+    public function sendInfoToAp(string $hostRequest, string $hostRequestSign, $method, $url): mixed
     {
-        $guzzle = new Client();
-
-        $rawResponse = $guzzle->$method($url, array(
-                'verify' => false,
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                ],
-                'body' => '{"hreq":"' . $hostRequest . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
-                'connect_timeout' => self::CONNECTION_TIME_OUT,
-                'read_timeout' => self::CONNECTION_TIME_OUT,
-                'timeout' => self::CONNECTION_TIME_OUT,
-            )
+        $rawResponse = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->withBody(
+            '{"hreq":"' . $hostRequest . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
+            'application/json'
+        )->$method(
+            $url
         );
 
-        return json_decode($rawResponse->getBody()->getContents(), true);
+        return json_decode($rawResponse->body(), true);
     }
 
 
