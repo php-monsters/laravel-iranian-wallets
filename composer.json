@@ -40,7 +40,7 @@
     },
     "autoload": {
         "psr-4": {
-            "PhpMonster\\Larawallet\\": "src/"
+            "PhpMonsters\\LaraWallet\\": "src/"
         }
     },
     "config": {
