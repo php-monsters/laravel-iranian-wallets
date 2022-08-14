@@ -1,9 +1,11 @@
 {
-    "name": "wallet/wallet",
+    "name": "php-monsters/larawallet",
     "description": "Iranian wallet gateways handler for laravel based applications",
     "keywords": [
+        "payment",
         "wallet",
-        "iran"
+        "iran",
+        "asanpardakht"
     ],
     "type": "library",
     "license": "MIT",
@@ -11,6 +13,10 @@
         {
             "name": "Maryam Nabiyan",
             "email": "maryam.nbyn@gmail.com"
+        },
+        {
+            "name": "Aboozar Ghaffari",
+            "email": "aboozar.ghf@gmail.com"
         }
     ],
     "require": {
@@ -34,7 +40,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Wallet\\Wallet\\": "src/"
+            "PhpMonster\\Larawallet\\": "src/"
         }
     },
     "config": {
