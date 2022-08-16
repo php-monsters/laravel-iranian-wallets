@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Enums;
+namespace PhpMonsters\LaraWallet\Enums;
 
 /**
  *

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src;
+namespace PhpMonsters\LaraWallet;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
-use App\Packages\wallet\wallet\src\Provider\AsanPardakhtProvider;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Manager;
 use InvalidArgumentException;
+use PhpMonsters\LaraWallet\Provider\AsanPardakhtProvider;
 
 /**
  *
@@ -109,7 +109,7 @@ class WalletManager extends Manager implements Contracts\Factory
     protected function getConfig(string $driver): array
     {
         if (empty($this->runtimeConfig)) {
-            return $this->container['config']["shaparak.providers.{$driver}"];
+            return $this->container['config']["wallet.{$driver}"];
         }
 
         return $this->runtimeConfig;

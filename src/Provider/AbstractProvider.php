@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Provider;
+namespace PhpMonsters\LaraWallet\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
-use Asanpay\Shaparak\Facades\Shaparak;
 use Illuminate\Support\Facades\Http;
+use PhpMonsters\LaraWallet\Facades\Wallet;
 use ReflectionClass;
 
 /**
@@ -200,7 +200,7 @@ abstract class AbstractProvider
 
         $message = $provider . ": " . $message;
 
-        Shaparak::log($message, $params, $level);
+        Wallet::log($message, $params, $level);
     }
 
 }
