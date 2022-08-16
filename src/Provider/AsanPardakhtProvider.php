@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Provider;
+namespace PhpMonsters\LaraWallet\Provider;
 
-use App\Packages\wallet\wallet\src\Enums\AsanpardakhtStatusEnum;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
+use PhpMonsters\LaraWallet\Enums\AsanpardakhtStatusEnum;
 use Tartan\Log\Facades\XLog;
 
 /**

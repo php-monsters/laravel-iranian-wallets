@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src;
+namespace PhpMonsters\LaraWallet;
 
-use App\Packages\wallet\wallet\src\Contracts\Factory;
 use Illuminate\Support\ServiceProvider;
+use PhpMonsters\LaraWallet\Contracts\Factory;
 
 /**
  *

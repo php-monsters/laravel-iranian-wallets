@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Contracts;
+namespace PhpMonsters\LaraWallet\Contracts;
 
 interface Provider
 {
@@ -25,7 +25,7 @@ interface Provider
      *
      * @return mixed
      */
-    public function getParameters(string $key = null, $default = null);
+    public function getParameters(string $key = null, $default = null): mixed;
 
     /**
      * return rendered goto gate form
@@ -34,16 +34,14 @@ interface Provider
      */
     public function getForm(): string;
 
+
     /**
-     * return parameters that require for generating goto gate form
-     *
      * @return array
      */
     public function getFormParameters(): array;
 
+
     /**
-     * get the transaction
-     *
      * @return Transaction
      */
     public function getTransaction(): Transaction;
@@ -55,51 +53,41 @@ interface Provider
      */
     public function verifyTransaction(): bool;
 
+
     /**
-     * for handling after verify methods like settle in Mellat gateway
-     *
-     * @return mixed
+     * @return bool
      */
     public function settleTransaction(): bool;
 
+
     /**
-     * reverse/refund transaction if supported by the provider
-     *
      * @return bool
      */
     public function refundTransaction(): bool;
 
+
     /**
-     * fetch bak gateway reference id from callback parameters
-     *
      * @return string
      */
     public function getGatewayReferenceId(): string;
 
+
     /**
-     * get the Url of different parts of a payment process of the gateway
-     *
      * @param string $action
-     *
      * @return string
-     * @throws \Asanpay\Shaparak\Provider\Exception
-     *
      */
     public function getUrlFor(string $action): string;
 
+
     /**
-     * Specifies whether it is possible to continue payment process with the return parameters from the bank gateway
-     *
      * @return bool
      */
     public function canContinueWithCallbackParameters(): bool;
 
+
     /**
-     * check for required parameters
-     *
      * @param array $parameters
-     *
-     * @throws \Asanpay\Shaparak\Provider\Exception
+     * @return void
      */
     public function checkRequiredActionParameters(array $parameters): void;
 }

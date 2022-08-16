@@ -1,16 +1,13 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Contracts;
+namespace PhpMonsters\LaraWallet\Contracts;
 
 interface Factory
 {
+
     /**
-     * Get a Shetab provider instance.
-     *
-     * @param string|null $driver
+     * @param $driver
      * @return mixed
-     *
-     * @throws \InvalidArgumentException
      */
-    public function driver($driver = null);
+    public function driver($driver = null): mixed;
 }

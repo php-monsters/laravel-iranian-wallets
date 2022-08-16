@@ -1,22 +1,20 @@
 <?php
 
-namespace App\Packages\wallet\wallet\src\Facades;
+namespace PhpMonsters\LaraWallet\Facades;
 
-use App\Packages\wallet\wallet\src\Contracts\Factory;
 use Illuminate\Support\Facades\Facade;
+use PhpMonsters\LaraWallet\Contracts\Factory;
 
 /**
  *
+ * @method static log(string $message, array $params, string $level)
  */
 class Wallet extends Facade
 {
 
+
     /**
-     * Get the registered name of the component.
-     *
      * @return string
-     *
-     * @throws \RuntimeException
      */
     public static function getFacadeAccessor(): string
     {
