@@ -3,9 +3,14 @@
 namespace PhpMonsters\LaraWallet\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use PhpMonsters\LaraWallet\Facades\Wallet;
 use ReflectionClass;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class AbstractProvider
@@ -44,13 +49,13 @@ abstract class AbstractProvider
     /**
      * @param array $configs
      * @param string $environment
-     * @param Transaction|null $transaction
+     * @param $transaction
      * @param $mobileNumber
      */
     public function __construct(
         array $configs,
         string $environment,
-        Transaction $transaction = null,
+        $transaction = null,
         $mobileNumber
     ) {
         $this->environment = $environment;
@@ -110,7 +115,11 @@ abstract class AbstractProvider
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ])->withBody(
-            '{"hreq":"' . $hostRequest . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
+            '{"hreq":"' . str_replace(
+                ['"{', '}"'],
+                ["{", "}"],
+                json_encode($hostRequest, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK),
+            ) . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
             'application/json'
         )->$method(
             $url
@@ -160,10 +169,8 @@ abstract class AbstractProvider
         return $this;
     }
 
-    /**
-     * @return Transaction
-     */
-    public function getTransaction(): Transaction
+
+    public function getTransaction()
     {
         return $this->transaction;
     }
@@ -201,6 +208,53 @@ abstract class AbstractProvider
         $message = $provider . ": " . $message;
 
         Wallet::log($message, $params, $level);
+    }
+
+    /**
+     * @param $message
+     * @param int $statusCode
+     * @param int|null $errorCode
+     * @return JsonResponse
+     */
+    public static function generalExceptionResponse(
+        int $errorCode = null,
+        $message = null,
+        int $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR,
+    ): JsonResponse {
+        return response()->json([
+            "code" => $errorCode,
+            "message" => $message,
+            "x_track_id" => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
+        ], $statusCode);
+    }
+
+
+    /**
+     * @param int $code
+     * @param string|null $value
+     * @param int $statusCode
+     * @return JsonResponse
+     */
+    public static function generalResponse(
+        int $code = 0,
+        string $value = null,
+        int $statusCode = Response::HTTP_OK,
+    ): JsonResponse {
+        return response()->json([
+            "code" => $code,
+            "value" => $value,
+            "x_track_id" => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
+        ], $statusCode);
+    }
+
+    /**
+     * @param $view
+     * @param $withErrors
+     * @return Factory|View|Application
+     */
+    public static function generalViewErrorResponse($view, $withErrors): Factory|View|Application
+    {
+        return view($view)->withErrors([$withErrors]);
     }
 
 }

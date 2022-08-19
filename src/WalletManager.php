@@ -2,7 +2,6 @@
 
 namespace PhpMonsters\LaraWallet;
 
-use App\Containers\AppSection\Transaction\Models\Transaction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Manager;
 use InvalidArgumentException;
@@ -11,7 +10,7 @@ use PhpMonsters\LaraWallet\Provider\AsanPardakhtProvider;
 /**
  *
  */
-class WalletManager extends Manager implements Contracts\Factory
+class WalletManager extends Manager/* implements Contracts\Factory*/
 {
     /**
      * runtime driver configuration
@@ -30,20 +29,18 @@ class WalletManager extends Manager implements Contracts\Factory
      */
     protected string $cellNumber;
 
-    /**
-     * @var Transaction|null
-     */
-    public Transaction|null $transaction;
+
+    public $transaction;
 
 
     /**
      * @param string $driver
      * @param array $config
-     * @param Transaction|null $transaction
+     * @param $transaction
      * @param string $mobileNumber
      * @return mixed
      */
-    public function with(string $driver, array $config, Transaction|null $transaction, string $mobileNumber): mixed
+    public function with(string $driver, array $config, $transaction, string $mobileNumber): mixed
     {
         $this->transaction = $transaction;
         $this->cellNumber = $mobileNumber;
