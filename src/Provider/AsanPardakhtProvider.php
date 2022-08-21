@@ -136,56 +136,17 @@ class AsanPardakhtProvider extends AbstractProvider
 
             $errorJson = json_decode($exception->getResponse()->getBody()->getContents());
 
-            return [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson->description ?? ''];
+            return $this->generalExceptionResponse(
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $errorJson->description ?? ''
+            );
         } catch (\Exception $exception) {
-            return [AsanpardakhtStatusEnum::FailedResponse->value, $exception->getMessage()];
+            return $this->generalExceptionResponse(
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $exception->getMessage()
+            );
         }
     }
-
-//
-//    /**
-//     * @return mixed
-//     */
-//    public function reverseWalletPaymentResult(): mixed
-//    {
-//        $getCallbackParams = $this->getTransaction()->getCallbackParams();
-//
-//        $arrayData = [
-//            "ao" => $this->getTransaction()->getPayableAmount(),
-//            "hi" => $this->getParameters('host_id'),
-//            "htran" => random_int(5000, 50000) . time(),
-//            "hop" => AsanpardakhtStatusEnum::ReverseRequestHop->value,
-//            "htime" => $getCallbackParams['htime'],
-//            "stime" => time(),
-//            "stkn" => $getCallbackParams['stkn'],
-//            "hkey" => $this->getParameters('api_key')
-//        ];
-//
-//        $hostRequest = $this->prepareJsonString($arrayData);
-//
-//        $hostRequestSign = $this->signRequest($hostRequest);
-//
-//        try {
-//            $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-//
-//            $responseJson = json_decode($rawResponse["hresp"]);
-//            $result = $responseJson->st;
-//
-//            //----------------------------------successfully reversed-------------------------------------
-//
-//            if ($responseJson->st == AsanpardakhtStatusEnum::SuccessRequest->value) {
-//                $this->log('successfully reversed', [], 'info');
-//
-//                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
-//            }
-//        } catch (ServerException $ex) {
-//            $this->log($ex->getMessage(), [], 'error');
-//            $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-//            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
-//        }
-//
-//        return $result;
-//    }
 
 
     /**
@@ -211,17 +172,24 @@ class AsanPardakhtProvider extends AbstractProvider
         $hostRequestSign = $this->signRequest($hostRequest);
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
+
             $responseJson = json_decode($rawResponse["hresp"]);
 
             $result = $responseJson->st;
 
 //----------------------------------successfully verified-------------------------------------
             if ($responseJson->st == AsanpardakhtStatusEnum::SuccessRequest->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenVerified->value) {
-                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
+                $result = $this->generalResponse(
+                    code: AsanpardakhtStatusEnum::SuccessResponse->value,
+                );
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
+
+            $result = $this->generalExceptionResponse(
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $errorJson
+            );
         }
 
         return $result;
@@ -256,11 +224,17 @@ class AsanPardakhtProvider extends AbstractProvider
 
             //---------------------Successfully verified--------------------------
             if ($responseJson->st == AsanpardakhtStatusEnum::SuccessResponse->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenSettled->value) {
-                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
+                $result = $this->generalResponse(
+                    code: AsanpardakhtStatusEnum::SuccessResponse->value,
+                );
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
-            $result = [AsanpardakhtStatusEnum::FailedResponse->value, $errorJson];
+
+            $result = $this->generalExceptionResponse(
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $errorJson
+            );
         }
 
         return $result;
@@ -336,6 +310,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
 
             $responseJson = json_decode($rawResponse["hresp"], true);
+            $result = $responseJson->st;
 
             //----------------------------------successfully reversed-------------------------------------
 
@@ -343,10 +318,9 @@ class AsanPardakhtProvider extends AbstractProvider
                 $this->log('successfully reversed', [], 'info');
                 $this->getTransaction()->setCallBackParameters($responseJson);
 
-                return $this->generalResponse(
+                $result = $this->generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 );
-//                $result = [AsanpardakhtStatusEnum::SuccessResponse->value, ''];
             }
         } catch (ServerException $ex) {
             $this->log($ex->getMessage(), [], 'error');
