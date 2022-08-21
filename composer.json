@@ -30,7 +30,7 @@
         "ext-bcmath": "*",
         "illuminate/support": ">=8.0",
         "illuminate/view": ">=8.0",
-        "tartan/laravel-xlog": "^1.2"
+        "php-monsters/laravel-xlog": "^1.2"
     },
     "require-dev": {
         "mockery/mockery": "^1.4.2",
@@ -45,6 +45,16 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PhpMonsters\\LaraWallet\\LaraWalletServiceProvider"
+            ],
+            "aliases": {
+                "Debugbar": "PhpMonsters\\LaraWallet\\Facades\\LaraWallet"
+            }
+        }
     },
     "minimum-stability": "stable"
 }

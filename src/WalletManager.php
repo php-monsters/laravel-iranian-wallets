@@ -121,6 +121,6 @@ class WalletManager extends Manager/* implements Contracts\Factory*/
     {
         $message = "WALLET -> " . $message;
 
-        forward_static_call(['Tartan\Log\Facades\XLog', $level], $message, $params);
+        forward_static_call(['PhpMonsters\Log\Facades\XLog', $level], $message, $params);
     }
 }
