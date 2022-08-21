@@ -8,7 +8,7 @@ use PhpMonsters\LaraWallet\Contracts\Factory;
 /**
  *
  */
-class BankWalletServiceProvider extends ServiceProvider
+class LaraWalletServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
