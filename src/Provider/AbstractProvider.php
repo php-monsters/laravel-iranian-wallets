@@ -8,7 +8,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
-use PhpMonsters\LaraWallet\Facades\Wallet;
+use PhpMonsters\LaraWallet\Facades\LaraWallet;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -207,7 +207,7 @@ abstract class AbstractProvider
 
         $message = $provider . ": " . $message;
 
-        Wallet::log($message, $params, $level);
+        LaraWallet::log($message, $params, $level);
     }
 
     /**
