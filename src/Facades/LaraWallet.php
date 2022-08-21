@@ -9,10 +9,8 @@ use PhpMonsters\LaraWallet\Contracts\Factory;
  *
  * @method static log(string $message, array $params, string $level)
  */
-class Wallet extends Facade
+class LaraWallet extends Facade
 {
-
-
     /**
      * @return string
      */
