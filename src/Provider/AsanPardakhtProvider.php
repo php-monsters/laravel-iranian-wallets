@@ -6,7 +6,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\JsonResponse;
 use PhpMonsters\LaraWallet\Enums\AsanpardakhtStatusEnum;
-use Tartan\Log\Facades\XLog;
+use PhpMonsters\Log\Facades\XLog;
 
 /**
  *
@@ -310,7 +310,8 @@ class AsanPardakhtProvider extends AbstractProvider
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
 
             $responseJson = json_decode($rawResponse["hresp"], true);
-            $result = $responseJson->st;
+
+            $result = $responseJson['st'];
 
             //----------------------------------successfully reversed-------------------------------------
 
