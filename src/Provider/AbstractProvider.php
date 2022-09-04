@@ -47,8 +47,8 @@ abstract class AbstractProvider
 
 
     /**
-     * @param array $configs
-     * @param string $environment
+     * @param  array  $configs
+     * @param  string  $environment
      * @param $transaction
      * @param $mobileNumber
      */
@@ -93,7 +93,7 @@ abstract class AbstractProvider
     }
 
     /**
-     * @param string $data
+     * @param  string  $data
      * @return bool|string
      */
     public function hashParam(string $data): bool|string
@@ -103,8 +103,8 @@ abstract class AbstractProvider
 
 
     /**
-     * @param string $hostRequest
-     * @param string $hostRequestSign
+     * @param  string  $hostRequest
+     * @param  string  $hostRequestSign
      * @param $method
      * @param $url
      * @return mixed
@@ -115,22 +115,22 @@ abstract class AbstractProvider
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ])->withBody(
-            '{"hreq":"' . str_replace(
+            '{"hreq":"'.str_replace(
                 ['"{', '}"'],
                 ["{", "}"],
                 json_encode($hostRequest, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK),
-            ) . '","hsign":"' . $hostRequestSign . '","ver":"1.9.2"}',
+            ).'","hsign":"'.$hostRequestSign.'","ver":"1.9.2"}',
             'application/json'
         )->$method(
             $url
         );
-
+        
         return json_decode($rawResponse->body(), true);
     }
 
 
     /**
-     * @param array $parameters
+     * @param  array  $parameters
      * @return $this
      */
     public function setParameters(array $parameters = []): static
@@ -145,7 +145,7 @@ abstract class AbstractProvider
 
 
     /**
-     * @param string|null $key
+     * @param  string|null  $key
      * @param $default
      * @return mixed|null
      */
@@ -160,7 +160,7 @@ abstract class AbstractProvider
     }
 
     /**
-     * @param mixed|string $environment
+     * @param  mixed|string  $environment
      * @return AbstractProvider
      */
     public function setEnvironment(mixed $environment): AbstractProvider
@@ -176,7 +176,7 @@ abstract class AbstractProvider
     }
 
     /**
-     * @param string $url
+     * @param  string  $url
      * @return AbstractProvider
      */
     public function setUrl(string $url): AbstractProvider
@@ -195,9 +195,9 @@ abstract class AbstractProvider
     }
 
     /**
-     * @param string $message
-     * @param array $params
-     * @param string $level
+     * @param  string  $message
+     * @param  array  $params
+     * @param  string  $level
      * @return void
      */
     protected function log(string $message, array $params = [], string $level = 'debug'): void
@@ -205,15 +205,15 @@ abstract class AbstractProvider
         $reflect = new ReflectionClass($this);
         $provider = strtolower(str_replace('Provider', '', $reflect->getShortName()));
 
-        $message = $provider . ": " . $message;
+        $message = $provider.": ".$message;
 
         LaraWallet::log($message, $params, $level);
     }
 
     /**
      * @param $message
-     * @param int $statusCode
-     * @param int|null $errorCode
+     * @param  int  $statusCode
+     * @param  int|null  $errorCode
      * @return JsonResponse
      */
     public static function generalExceptionResponse(
@@ -230,9 +230,9 @@ abstract class AbstractProvider
 
 
     /**
-     * @param int $code
-     * @param string|null $value
-     * @param int $statusCode
+     * @param  int  $code
+     * @param  string|null  $value
+     * @param  int  $statusCode
      * @return JsonResponse
      */
     public static function generalResponse(

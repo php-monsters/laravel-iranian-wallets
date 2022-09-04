@@ -30,13 +30,14 @@ class AsanPardakhtProvider extends AbstractProvider
                 "mo" => $this->getCellNumber(),
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
-                "htran" => random_int(5000, 50000) . time(),
+                "htran" => random_int(5000, 50000).time(),
                 "hop" => AsanpardakhtStatusEnum::WalletBalanceHop->value,
                 "htime" => time(),
                 "hkey" => $this->getParameters('api_key')
             ];
 
             $hostRequest = $this->prepareJsonString($arrayData);
+
             $hostRequestSign = $this->signRequest($hostRequest);
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
 
@@ -61,8 +62,8 @@ class AsanPardakhtProvider extends AbstractProvider
     /**
      * sign request
      *
-     * @param string $input
-     * @param bool $debug
+     * @param  string  $input
+     * @param  bool  $debug
      *
      * @return string
      */
@@ -77,7 +78,7 @@ class AsanPardakhtProvider extends AbstractProvider
             OPENSSL_ALGO_SHA256
         );
 
-        return '1#1#' . base64_encode($binary_signature);
+        return '1#1#'.base64_encode($binary_signature);
     }
 
 
@@ -96,7 +97,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 "mo" => $this->getCellNumber(),
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
-                "htran" => random_int(5000, 50000) . time(),
+                "htran" => random_int(5000, 50000).time(),
                 "hop" => AsanpardakhtStatusEnum::PayByWalletHop->value,
                 "htime" => time(),
                 "stime" => time(),
@@ -253,7 +254,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $errorMsg = $exception->getMessage();
         }
 
-        XLog::emergency('check balance failure' . ' ' . ' message: ' . $errorMsg);
+        XLog::emergency('check balance failure'.' '.' message: '.$errorMsg);
 
         return $this->generalExceptionResponse(
             AsanpardakhtStatusEnum::FailedResponse->value,
@@ -263,7 +264,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
 
     /**
-     * @param array $data
+     * @param  array  $data
      * @return string|array|false
      */
     public function prepareJsonString(array $data): string|array|false
@@ -293,7 +294,7 @@ class AsanPardakhtProvider extends AbstractProvider
             "mo" => $this->getCellNumber(),
             "hi" => $this->getParameters('host_id'),
             "walet" => 5,
-            "htran" => random_int(5000, 50000) . time(),
+            "htran" => random_int(5000, 50000).time(),
             "hop" => AsanpardakhtStatusEnum::ReverseRequestHop->value,
             "htime" => $time,
             "stime" => $time,
