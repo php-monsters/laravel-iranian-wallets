@@ -3,6 +3,7 @@
 namespace PhpMonsters\LaraWallet\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
+use App\Containers\AppSection\Wallet\Models\WalletProvider;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -20,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @package   Wallet\Wallet
  * @version   v1.0
  */
-abstract class AbstractProvider
+abstract class AbstractProvider extends WalletProvider
 {
     const CONNECTION_TIME_OUT = 5;
 
@@ -124,7 +125,7 @@ abstract class AbstractProvider
         )->$method(
             $url
         );
-        
+
         return json_decode($rawResponse->body(), true);
     }
 
