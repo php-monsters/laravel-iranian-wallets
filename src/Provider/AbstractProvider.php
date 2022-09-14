@@ -56,6 +56,7 @@ abstract class AbstractProvider extends WalletProvider
     public function __construct(
         array $configs,
         string $environment,
+        //todo adds type of transaction
         $transaction = null,
         $mobileNumber
     ) {
