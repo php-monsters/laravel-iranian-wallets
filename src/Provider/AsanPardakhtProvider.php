@@ -5,6 +5,7 @@ namespace PhpMonsters\LaraWallet\Provider;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use PhpMonsters\LaraWallet\Enums\AsanpardakhtStatusEnum;
 use PhpMonsters\Log\Facades\XLog;
 
@@ -41,7 +42,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $hostRequestSign = $this->signRequest($hostRequest);
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
 
-            $responseJson = json_decode($rawResponse["hresp"]);
+            $responseJson = json_decode($rawResponse["hresp"], false, 512, JSON_THROW_ON_ERROR);
 
             $credit = 0;
 
@@ -49,7 +50,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 $credit = $responseJson->wball / 10;
             }
 
-            return $this->generalResponse(
+            return self::generalResponse(
                 code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 value: $credit,
             );
@@ -60,11 +61,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
 
     /**
-     * sign request
-     *
      * @param  string  $input
-     * @param  bool  $debug
-     *
      * @return string
      */
     public function signRequest(string $input): string
@@ -74,7 +71,7 @@ class AsanPardakhtProvider extends AbstractProvider
         openssl_sign(
             $input,
             $binary_signature,
-            config('wallet.asanpardakht.private_key'),
+            Storage::disk('private')->get('private.pem'),
             OPENSSL_ALGO_SHA256
         );
 
@@ -114,22 +111,22 @@ class AsanPardakhtProvider extends AbstractProvider
             if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
                 $this->getTransaction()->setCallBackParameters($responseJson);
 
-                return $this->generalResponse(
+                return self::generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 );
             }
 
             if ($responseJson->st == AsanpardakhtStatusEnum::AccessDeniedRequest->value || $responseJson->st == AsanpardakhtStatusEnum::InsufficientInventory) { // access denied : 1332, low credit : 1330
-                return $this->generalResponse(
+                return self::generalResponse(
                     code: AsanpardakhtStatusEnum::AccessDeniedResponse->value,
                     value: $responseJson->addData->ipgURL,
                 );
-            } else {
-                return $this->generalResponse(
-                    code: AsanpardakhtStatusEnum::FailedResponse->value,
-                    value: $responseJson->stm,
-                );
             }
+
+            return self::generalResponse(
+                code: AsanpardakhtStatusEnum::FailedResponse->value,
+                value: $responseJson->stm,
+            );
         } catch (ServerException $exception) {
             if ($responseJson != '') {
                 $this->reverseWalletPaymentResult();
@@ -137,12 +134,12 @@ class AsanPardakhtProvider extends AbstractProvider
 
             $errorJson = json_decode($exception->getResponse()->getBody()->getContents());
 
-            return $this->generalExceptionResponse(
+            return self::generalExceptionResponse(
                 AsanpardakhtStatusEnum::FailedResponse->value,
                 $errorJson->description ?? ''
             );
         } catch (\Exception $exception) {
-            return $this->generalExceptionResponse(
+            return self::generalExceptionResponse(
                 AsanpardakhtStatusEnum::FailedResponse->value,
                 $exception->getMessage()
             );
@@ -152,6 +149,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
     /**
      * @return mixed
+     * @throws \JsonException
      */
     public function verifyWalletPaymentResult(): mixed
     {
@@ -180,14 +178,14 @@ class AsanPardakhtProvider extends AbstractProvider
 
 //----------------------------------successfully verified-------------------------------------
             if ($responseJson->st == AsanpardakhtStatusEnum::SuccessRequest->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenVerified->value) {
-                $result = $this->generalResponse(
+                $result = self::generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 );
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
 
-            $result = $this->generalExceptionResponse(
+            $result = self::generalExceptionResponse(
                 AsanpardakhtStatusEnum::FailedResponse->value,
                 $errorJson
             );
@@ -199,6 +197,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
     /**
      * @return mixed
+     * @throws \JsonException
      */
     public function settleWalletPaymentResult(): mixed
     {
@@ -225,14 +224,14 @@ class AsanPardakhtProvider extends AbstractProvider
 
             //---------------------Successfully verified--------------------------
             if ($responseJson->st == AsanpardakhtStatusEnum::SuccessResponse->value or $responseJson->st == AsanpardakhtStatusEnum::TransactionAlreadyBeenSettled->value) {
-                $result = $this->generalResponse(
+                $result = self::generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 );
             }
         } catch (ServerException $ex) {
             $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
 
-            $result = $this->generalExceptionResponse(
+            $result = self::generalExceptionResponse(
                 AsanpardakhtStatusEnum::FailedResponse->value,
                 $errorJson
             );
@@ -242,7 +241,11 @@ class AsanPardakhtProvider extends AbstractProvider
     }
 
 
-    public function getBalanceWalletError(\Exception $exception)
+    /**
+     * @param  \Exception  $exception
+     * @return JsonResponse
+     */
+    public function getBalanceWalletError(\Exception $exception): JsonResponse
     {
         if (method_exists($exception, 'getResponse') && !empty($exception->getResponse())) {
             $errorJson = json_decode($exception->getResponse()->getBody()->getContents());
@@ -256,7 +259,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
         XLog::emergency('check balance failure'.' '.' message: '.$errorMsg);
 
-        return $this->generalExceptionResponse(
+        return self::generalExceptionResponse(
             AsanpardakhtStatusEnum::FailedResponse->value,
             'error in wallet service'
         );
@@ -266,19 +269,21 @@ class AsanPardakhtProvider extends AbstractProvider
     /**
      * @param  array  $data
      * @return string|array|false
+     * @throws \JsonException
      */
     public function prepareJsonString(array $data): string|array|false
     {
-        return json_encode($data, JSON_UNESCAPED_SLASHES);
+        return json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
     }
 
     /**
      * @param $hresp
      * @return mixed
+     * @throws \JsonException
      */
     public function getHresponseData($hresp): mixed
     {
-        return json_decode($hresp, true);
+        return json_decode($hresp, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -309,7 +314,6 @@ class AsanPardakhtProvider extends AbstractProvider
 
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-
             $responseJson = json_decode($rawResponse["hresp"], true);
 
             $result = $responseJson['st'];
@@ -320,7 +324,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 $this->log('successfully reversed', [], 'info');
                 $this->getTransaction()->setCallBackParameters($responseJson);
 
-                $result = $this->generalResponse(
+                $result = self::generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
                 );
             }
