@@ -28,6 +28,7 @@ enum AsanpardakhtStatusEnum: int
     case ReverseRequestHop = 244;
     case VerifyRequestHop = 2001;
     case SettleRequestHop = 2002;
+    case RefundRequestHop = 2003;
 
 
     //----------------------generate by code-------------------

@@ -234,17 +234,20 @@ abstract class AbstractProvider extends WalletProvider
     /**
      * @param  int  $code
      * @param  string|null  $value
+     * @param  array|null  $result
      * @param  int  $statusCode
      * @return JsonResponse
      */
     public static function generalResponse(
         int $code = 0,
         string $value = null,
+        array $result = null,
         int $statusCode = Response::HTTP_OK,
     ): JsonResponse {
         return response()->json([
             "code" => $code,
             "value" => $value,
+            "result" => $result,
             "x_track_id" => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
         ], $statusCode);
     }

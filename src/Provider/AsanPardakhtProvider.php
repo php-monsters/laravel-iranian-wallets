@@ -336,4 +336,60 @@ class AsanPardakhtProvider extends AbstractProvider
 
         return $result;
     }
+
+
+    /**
+     * @return mixed
+     * @throws \JsonException
+     */
+    public function refundWalletPaymentResult(): mixed
+    {
+        $time = time();
+
+        $arrayData = [
+            "ao" => $this->getTransaction()->getPayableAmount(),
+            "mo" => $this->getCellNumber(),
+            "hi" => $this->getParameters('host_id'),
+            "walet" => 5,
+            "htran" => $this->getTransaction()->getCallbackParams()['htran'],
+            "hop" => AsanpardakhtStatusEnum::RefundRequestHop->value,
+            "htime" => $this->getTransaction()->getCallbackParams()['htime'],
+            "stime" => $time,
+            "stkn" => $this->getTransaction()->getCallbackParams()['stkn'],
+            "hkey" => $this->getParameters('api_key')
+        ];
+        $hostRequest = $this->prepareJsonString($arrayData);
+
+        $hostRequestSign = $this->signRequest($hostRequest);
+
+        try {
+            $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
+            $responseJson = json_decode($rawResponse["hresp"], true);
+
+            $result = $responseJson['st'];
+
+            //----------------------------------successfully reversed-------------------------------------
+            if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
+                $this->log('successfully reversed', [], 'info');
+
+                $result = self::generalResponse(
+                    code: AsanpardakhtStatusEnum::SuccessResponse->value,
+                    result: $responseJson,
+                );
+            } else {
+                $result = self::generalResponse(
+                    code: $result,
+                );
+            }
+        } catch (ServerException $ex) {
+            $this->log($ex->getMessage(), [], 'error');
+            $errorJson = json_decode($ex->getResponse()->getBody()->getContents());
+            $result = [
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $errorJson
+            ];
+        }
+
+        return $result;
+    }
 }
