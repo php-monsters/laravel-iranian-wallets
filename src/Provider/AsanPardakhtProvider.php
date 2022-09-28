@@ -2,6 +2,8 @@
 
 namespace PhpMonsters\LaraWallet\Provider;
 
+use App\Ship\Enums\ErrorType;
+use App\Ship\Enums\LogType;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\JsonResponse;
@@ -320,8 +322,8 @@ class AsanPardakhtProvider extends AbstractProvider
 
             //----------------------------------successfully reversed-------------------------------------
 
-            if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
-                $this->log('successfully reversed', [], 'info');
+            if ($responseJson['st'] === AsanpardakhtStatusEnum::SuccessRequest->value) {
+                $this->log('successfully reversed', [], LogType::INFO->value);
                 $this->getTransaction()->setCallBackParameters($responseJson);
 
                 $result = self::generalResponse(
@@ -370,7 +372,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
             //----------------------------------successfully reversed-------------------------------------
             if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
-                $this->log('successfully reversed', [], 'info');
+                $this->log('successfully reversed', [], LogType::INFO->value);
 
                 $result = self::generalResponse(
                     code: AsanpardakhtStatusEnum::SuccessResponse->value,
