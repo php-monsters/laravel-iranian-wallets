@@ -43,6 +43,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
             $hostRequestSign = $this->signRequest($hostRequest);
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
+
             dd($arrayData, $hostRequest, $hostRequestSign, $rawResponse);
 
             $responseJson = json_decode($rawResponse["hresp"], false, 512, JSON_THROW_ON_ERROR);
