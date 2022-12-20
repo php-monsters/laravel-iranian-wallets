@@ -73,7 +73,7 @@ class AsanPardakhtProvider extends AbstractProvider
         openssl_sign(
             $input,
             $binary_signature,
-            Storage::disk('private')->get('private.pem'),
+            Storage::disk('private')->get('APWalletPrivate.pem'),
             OPENSSL_ALGO_SHA256
         );
 
