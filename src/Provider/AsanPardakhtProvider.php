@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use PhpMonsters\LaraWallet\Enums\AsanpardakhtStatusEnum;
+use PhpMonsters\LaraWallet\Exception;
 use PhpMonsters\Log\Facades\XLog;
 
 /**
@@ -24,6 +25,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
     /**
      * @return JsonResponse|array
+     * @throws Exception
      */
     public function checkWalletBalance(): JsonResponse|array
     {
@@ -43,11 +45,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
             $hostRequestSign = $this->signRequest($hostRequest);
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
-
-            dd($arrayData, $hostRequest, $hostRequestSign, $rawResponse);
-
             $responseJson = json_decode($rawResponse["hresp"], false, 512, JSON_THROW_ON_ERROR);
-
             $credit = 0;
 
             if (property_exists($responseJson, 'wball')) {
@@ -59,7 +57,10 @@ class AsanPardakhtProvider extends AbstractProvider
                 value: $credit,
             );
         } catch (ClientException|\Exception $exception) {
-            return $this->getBalanceWalletError($exception);
+            $exceptionMessage = $this->getBalanceWalletError($exception);
+
+            throw new Exception((json_decode($exceptionMessage->content(), false))->message,
+                $exceptionMessage->statusCode);
         }
     }
 
@@ -85,6 +86,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
     /**
      * @return JsonResponse|array
+     * @throws \JsonException
      */
     public function payByWallet(): JsonResponse|array
     {
@@ -108,7 +110,6 @@ class AsanPardakhtProvider extends AbstractProvider
             $hostRequest = $this->prepareJsonString($arrayData);
 
             $hRequestSign = $this->signRequest($hostRequest);
-
             $rawResponse = $this->sendInfoToAp($hostRequest, $hRequestSign, self::POST_METHOD, $this->getUrl());
             $responseJson = $this->getHresponseData($rawResponse["hresp"]);
 
@@ -261,7 +262,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $errorMsg = $exception->getMessage();
         }
 
-        XLog::emergency('check balance failure'.' '.' message: '.$errorMsg);
+        XLog::emergency('wallet service check balance failure'.' '.' message: '.$errorMsg);
 
         return self::generalExceptionResponse(
             AsanpardakhtStatusEnum::FailedResponse->value,
@@ -290,8 +291,10 @@ class AsanPardakhtProvider extends AbstractProvider
         return json_decode($hresp, true, 512, JSON_THROW_ON_ERROR);
     }
 
+
     /**
      * @return mixed
+     * @throws \JsonException
      */
     public function reverseWalletPaymentResult(): mixed
     {
@@ -310,11 +313,9 @@ class AsanPardakhtProvider extends AbstractProvider
             "hkey" => $this->getParameters('api_key')
         ];
 
-
         $hostRequest = $this->prepareJsonString($arrayData);
 
         $hostRequestSign = $this->signRequest($hostRequest);
-
 
         try {
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
