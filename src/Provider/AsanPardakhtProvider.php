@@ -46,19 +46,25 @@ class AsanPardakhtProvider extends AbstractProvider
             $hostRequestSign = $this->signRequest($hostRequest);
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
             $responseJson = json_decode($rawResponse["hresp"], false, 512, JSON_THROW_ON_ERROR);
-            $credit = 0;
 
-            if (property_exists($responseJson, 'wball')) {
-                $credit = $responseJson->wball / 10;
+            if ($responseJson->st != 1100) {
+                $credit = 0;
+
+                if (property_exists($responseJson, 'wball')) {
+                    $credit = $responseJson->wball / 10;
+                }
+
+                return self::generalResponse(
+                    code: AsanpardakhtStatusEnum::SuccessResponse->value,
+                    value: $credit,
+                );
             }
 
-            return self::generalResponse(
-                code: AsanpardakhtStatusEnum::SuccessResponse->value,
-                value: $credit,
-            );
+            XLog::emergency('asan pardakht wallet service check balance failure', $rawResponse);
+
+            throw new \Exception();
         } catch (ClientException|\Exception $exception) {
             $exceptionMessage = $this->getBalanceWalletError($exception);
-
             throw new Exception((json_decode($exceptionMessage->content(), false))->message,
                 $exceptionMessage->statusCode);
         }
