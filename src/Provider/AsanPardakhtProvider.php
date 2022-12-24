@@ -47,7 +47,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
             $responseJson = json_decode($rawResponse["hresp"], false, 512, JSON_THROW_ON_ERROR);
 
-            if ($responseJson->st != 1100) {
+            if ($responseJson->st !== 1100) {
                 $credit = 0;
 
                 if (property_exists($responseJson, 'wball')) {
