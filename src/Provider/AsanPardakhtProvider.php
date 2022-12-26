@@ -66,7 +66,7 @@ class AsanPardakhtProvider extends AbstractProvider
         } catch (ClientException|\Exception $exception) {
             $exceptionMessage = $this->getBalanceWalletError($exception);
             throw new Exception((json_decode($exceptionMessage->content(), false))->message,
-                $exceptionMessage->statusCode);
+                $exceptionMessage->statusCode ?? 500);
         }
     }
 
