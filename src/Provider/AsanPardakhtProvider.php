@@ -35,7 +35,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 "mo" => $this->getCellNumber(),
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
-                "htran" => random_int(5000, 50000).time(),
+                "htran" => random_int(5000, 50000) . time(),
                 "hop" => AsanpardakhtStatusEnum::WalletBalanceHop->value,
                 "htime" => time(),
                 "hkey" => $this->getParameters('api_key')
@@ -66,13 +66,13 @@ class AsanPardakhtProvider extends AbstractProvider
         } catch (ClientException|\Exception $exception) {
             $exceptionMessage = $this->getBalanceWalletError($exception);
             throw new Exception((json_decode($exceptionMessage->content(), false))->message,
-                $exceptionMessage->statusCode ?? 500);
+                $exceptionMessage->statusCode);
         }
     }
 
 
     /**
-     * @param  string  $input
+     * @param string $input
      * @return string
      */
     public function signRequest(string $input): string
@@ -86,7 +86,7 @@ class AsanPardakhtProvider extends AbstractProvider
             OPENSSL_ALGO_SHA256
         );
 
-        return '1#1#'.base64_encode($binary_signature);
+        return '1#1#' . base64_encode($binary_signature);
     }
 
 
@@ -106,7 +106,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 "mo" => $this->getCellNumber(),
                 "hi" => $this->getParameters('host_id'),
                 "walet" => 5,
-                "htran" => random_int(5000, 50000).time(),
+                "htran" => random_int(5000, 50000) . time(),
                 "hop" => AsanpardakhtStatusEnum::PayByWalletHop->value,
                 "htime" => time(),
                 "stime" => time(),
@@ -127,13 +127,6 @@ class AsanPardakhtProvider extends AbstractProvider
                 );
             }
 
-            if ($responseJson->st == AsanpardakhtStatusEnum::AccessDeniedRequest->value || $responseJson->st == AsanpardakhtStatusEnum::InsufficientInventory) { // access denied : 1332, low credit : 1330
-                return self::generalResponse(
-                    code: AsanpardakhtStatusEnum::AccessDeniedResponse->value,
-                    value: $responseJson->addData->ipgURL,
-                );
-            }
-
             return self::generalResponse(
                 code: AsanpardakhtStatusEnum::FailedResponse->value,
                 value: $responseJson->stm,
@@ -149,6 +142,48 @@ class AsanPardakhtProvider extends AbstractProvider
                 AsanpardakhtStatusEnum::FailedResponse->value,
                 $errorJson->description ?? ''
             );
+        } catch (\Exception $exception) {
+            return self::generalExceptionResponse(
+                AsanpardakhtStatusEnum::FailedResponse->value,
+                $exception->getMessage()
+            );
+        }
+    }
+
+    /**
+     * @return JsonResponse|array
+     * @throws \JsonException
+     */
+    public function walletCharge(): JsonResponse|array
+    {
+        $responseJson = '';
+
+        try {
+            $arrayData = [
+                "caurl" => $this->getTransaction()->callback_url,
+                "ao" => $this->getTransaction()->amount,
+                "mo" => $this->getCellNumber(),
+                "hi" => $this->getParameters('host_id'),
+                "walet" => 5,
+                "htran" => random_int(5000, 50000) . time(),
+                "hop" => AsanpardakhtStatusEnum::ChargeWallet->value,
+                "htime" => time(),
+                "stime" => time(),
+                "hkey" => $this->getParameters('api_key')
+            ];
+
+            $hostRequest = $this->prepareJsonString($arrayData);
+
+            $hRequestSign = $this->signRequest($hostRequest);
+            $rawResponse = $this->sendInfoToAp($hostRequest, $hRequestSign, self::POST_METHOD, $this->getUrl());
+            $responseJson = $this->getHresponseData($rawResponse["hresp"]);
+
+            if ($responseJson['st'] == AsanpardakhtStatusEnum::SuccessRequest->value) {
+                return self::generalResponse(
+                    code: AsanpardakhtStatusEnum::SuccessResponse->value,
+                    value: $responseJson['addData']['ipgURL'],
+                );
+            }
         } catch (\Exception $exception) {
             return self::generalExceptionResponse(
                 AsanpardakhtStatusEnum::FailedResponse->value,
@@ -253,7 +288,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
 
     /**
-     * @param  \Exception  $exception
+     * @param \Exception $exception
      * @return JsonResponse
      */
     public function getBalanceWalletError(\Exception $exception): JsonResponse
@@ -268,7 +303,7 @@ class AsanPardakhtProvider extends AbstractProvider
             $errorMsg = $exception->getMessage();
         }
 
-        XLog::emergency('wallet service check balance failure'.' '.' message: '.$errorMsg);
+        XLog::emergency('wallet service check balance failure' . ' ' . ' message: ' . $errorMsg);
 
         return self::generalExceptionResponse(
             AsanpardakhtStatusEnum::FailedResponse->value,
@@ -278,7 +313,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
 
     /**
-     * @param  array  $data
+     * @param array $data
      * @return string|array|false
      * @throws \JsonException
      */
@@ -312,7 +347,7 @@ class AsanPardakhtProvider extends AbstractProvider
             "mo" => $this->getCellNumber(),
             "hi" => $this->getParameters('host_id'),
             "walet" => 5,
-            "htran" => random_int(5000, 50000).time(),
+            "htran" => random_int(5000, 50000) . time(),
             "hop" => AsanpardakhtStatusEnum::ReverseRequestHop->value,
             "htime" => $time,
             "stime" => $time,
