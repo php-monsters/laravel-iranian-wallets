@@ -25,6 +25,7 @@ enum AsanpardakhtStatusEnum: int
     case AccessDeniedRequest = 1332;
     case WalletBalanceHop = 310;
     case PayByWalletHop = 243;
+    case ChargeWallet = 313;
     case ReverseRequestHop = 244;
     case VerifyRequestHop = 2001;
     case SettleRequestHop = 2002;
