@@ -232,7 +232,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 'mo' => $this->getCellNumber(),
                 'hi' => $this->getParameters('host_id'),
                 'walet' => 5,
-                'htran' => $this->getTransaction()->getWalletTransactionId(),
+                'htran' => $this->getWalletChargeTransactionId(),
                 'hop' => AsanpardakhtStatusEnum::ChargeWallet->value,
                 'htime' => time(),
                 'stime' => time(),
@@ -399,5 +399,10 @@ class AsanPardakhtProvider extends AbstractProvider
         }
 
         return $result;
+    }
+
+    private function getWalletChargeTransactionId(): int
+    {
+        return 900000000000 + time();
     }
 }
