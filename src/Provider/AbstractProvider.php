@@ -4,6 +4,7 @@ namespace PhpMonsters\LaraWallet\Provider;
 
 use App\Containers\AppSection\Transaction\Models\Transaction;
 use App\Containers\AppSection\Wallet\Models\WalletProvider;
+use App\Ship\Models\Serial;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -184,5 +185,10 @@ abstract class AbstractProvider extends WalletProvider
     public static function generalViewErrorResponse($view, $withErrors): Factory|View|Application
     {
         return view($view)->withErrors([$withErrors]);
+    }
+
+    protected function getWalletTransactionId(string $seq = 'ap_trans_id'): int
+    {
+        return Serial::getNextVal($seq);
     }
 }

@@ -35,21 +35,25 @@ class AsanPardakhtProvider extends AbstractProvider
                 'mo' => $this->getCellNumber(),
                 'hi' => $this->getParameters('host_id'),
                 'walet' => 5,
-                'htran' => $this->getWalletChargeTransactionId(),
+                'htran' => $this->getWalletTransactionId(),
                 'hop' => AsanpardakhtStatusEnum::WalletBalanceHop->value,
                 'htime' => time(),
                 'hkey' => $this->getParameters('api_key'),
             ]);
 
-            $hostRequestSign = $this->signRequest($hostRequest);
-            $rawResponse = $this->sendInfoToAp($hostRequest, $hostRequestSign, self::POST_METHOD, $this->getUrl());
+            $rawResponse = $this->sendInfoToAp(
+                $hostRequest,
+                $this->signRequest($hostRequest),
+                self::POST_METHOD,
+                $this->getUrl()
+            );
             $responseJson = json_decode($rawResponse['hresp'], false, 512, JSON_THROW_ON_ERROR);
 
             if ($responseJson->st !== 1100) {
                 $credit = 0;
 
                 if (property_exists($responseJson, 'wball')) {
-                    $credit = $responseJson->wball / 10;
+                    $credit = $responseJson->wball / 10; // this API returns fucking RIAL!!!
                 }
 
                 return self::generalResponse(
@@ -95,7 +99,7 @@ class AsanPardakhtProvider extends AbstractProvider
     {
         if (method_exists($exception, 'getResponse') && ! empty($exception->getResponse())) {
             $errorJson = json_decode($exception->getResponse()->getBody()->getContents());
-            $errorMsg = $errorJson != null && property_exists(
+            $errorMsg = ! is_null($errorJson) && property_exists(
                 $errorJson,
                 'description'
             ) ? $errorJson->description : $exception->getMessage();
@@ -126,7 +130,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 'mo' => $this->getCellNumber(),
                 'hi' => $this->getParameters('host_id'),
                 'walet' => 5,
-                'htran' => $this->getTransaction()->getWalletTransactionId(),
+                'htran' => $this->getWalletTransactionId(),
                 'hop' => AsanpardakhtStatusEnum::PayByWalletHop->value,
                 'htime' => time(),
                 'stime' => time(),
@@ -189,7 +193,7 @@ class AsanPardakhtProvider extends AbstractProvider
             'mo' => $this->getCellNumber(),
             'hi' => $this->getParameters('host_id'),
             'walet' => 5,
-            'htran' => $this->getTransaction()->getWalletTransactionId(),
+            'htran' => $this->getWalletTransactionId(),
             'hop' => AsanpardakhtStatusEnum::ReverseRequestHop->value,
             'htime' => $time,
             'stime' => $time,
@@ -232,7 +236,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 'mo' => $this->getCellNumber(),
                 'hi' => $this->getParameters('host_id'),
                 'walet' => 5,
-                'htran' => $this->getWalletChargeTransactionId(),
+                'htran' => $this->getWalletTransactionId(),
                 'hop' => AsanpardakhtStatusEnum::ChargeWallet->value,
                 'htime' => time(),
                 'stime' => time(),
@@ -399,10 +403,5 @@ class AsanPardakhtProvider extends AbstractProvider
         }
 
         return $result;
-    }
-
-    private function getWalletChargeTransactionId(): int
-    {
-        return 900000000000 + time();
     }
 }

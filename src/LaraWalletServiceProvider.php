@@ -28,7 +28,8 @@ class LaraWalletServiceProvider extends ServiceProvider
     protected function registerPublishing(): void
     {
         $this->publishes([
-            __DIR__.'/../config/wallet.php' => config_path('wallet.php'),
-        ], 'config');
+            __DIR__.'/../config/wallet.php' => config_path('wallet.php')], 'larawallet-configs');
+        $this->publishes([
+            __DIR__.'/../migrations/' => database_path('migrations')], 'larawallet-migrations');
     }
 }
