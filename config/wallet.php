@@ -14,12 +14,12 @@ return [
     */
 
     'mode' => env('WALLET_MODE', 'production'),
-
     'asanpardakht' => [
         'debug' => true,
-        'host_id' => '',
-        'url' => '',
-        'private_key' => '',
-    ]
-
+        'host_id' => env('ASANPARDAKHT_WALLET_HOST_ID'),
+        'url' => env(
+            'ASANPARDAKHT_WALLET_URL',
+            'https://thirdparty.dev.tasn.ir/exts/v1/'
+        ).env('ASANPARDAKHT_WALLET_HOST_ID').'/1',
+    ],
 ];

@@ -17,18 +17,13 @@ use Symfony\Component\HttpFoundation\Response;
  * Class AbstractProvider
  *
  * @author    Maryam Nabiyan
- * @package   Wallet
- * @package   Wallet\Wallet
+ *
  * @version   v1.0
  */
 abstract class AbstractProvider extends WalletProvider
 {
     const CONNECTION_TIME_OUT = 5;
 
-
-    /**
-     * @var string
-     */
     protected string $cellNumber;
 
     /**
@@ -36,9 +31,6 @@ abstract class AbstractProvider extends WalletProvider
      */
     protected string $environment;
 
-    /**
-     * @var string
-     */
     protected string $url;
 
     /**
@@ -46,18 +38,11 @@ abstract class AbstractProvider extends WalletProvider
      */
     protected $transaction;
 
-
-    /**
-     * @param  array  $configs
-     * @param  string  $environment
-     * @param $transaction
-     * @param $mobileNumber
-     */
     public function __construct(
         array $configs,
         string $environment,
         //todo adds type of transaction
-        $transaction = null,
+        $transaction,
         $mobileNumber
     ) {
         $this->environment = $environment;
@@ -67,50 +52,26 @@ abstract class AbstractProvider extends WalletProvider
         $this->setUrl(config('wallet.asanpardakht.url'));
     }
 
-
-    /**
-     * @param $transaction
-     * @return void
-     */
     public function setTransaction($transaction = null): void
     {
         $this->transaction = $transaction;
     }
 
-    /**
-     * @param $cellNumber
-     * @return void
-     */
     public function setCellNumber($cellNumber): void
     {
         $this->cellNumber = $cellNumber;
     }
 
-    /**
-     * @return string
-     */
     public function getCellNumber(): string
     {
         return $this->cellNumber;
     }
 
-    /**
-     * @param  string  $data
-     * @return bool|string
-     */
     public function hashParam(string $data): bool|string
     {
         return hash('md5', $data, false);
     }
 
-
-    /**
-     * @param  string  $hostRequest
-     * @param  string  $hostRequestSign
-     * @param $method
-     * @param $url
-     * @return mixed
-     */
     public function sendInfoToAp(string $hostRequest, string $hostRequestSign, $method, $url): mixed
     {
         $rawResponse = Http::withHeaders([
@@ -119,7 +80,7 @@ abstract class AbstractProvider extends WalletProvider
         ])->withBody(
             '{"hreq":"'.str_replace(
                 ['"{', '}"'],
-                ["{", "}"],
+                ['{', '}'],
                 json_encode($hostRequest, JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK),
             ).'","hsign":"'.$hostRequestSign.'","ver":"1.9.2"}',
             'application/json'
@@ -130,9 +91,7 @@ abstract class AbstractProvider extends WalletProvider
         return json_decode($rawResponse->body(), true);
     }
 
-
     /**
-     * @param  array  $parameters
      * @return $this
      */
     public function setParameters(array $parameters = []): static
@@ -145,10 +104,7 @@ abstract class AbstractProvider extends WalletProvider
         return $this;
     }
 
-
     /**
-     * @param  string|null  $key
-     * @param $default
      * @return mixed|null
      */
     public function getParameters(string $key = null, $default = null): mixed
@@ -158,29 +114,25 @@ abstract class AbstractProvider extends WalletProvider
         }
 
         $key = strtolower($key);
+
         return $this->parameters[$key] ?? $default;
     }
 
     /**
      * @param  mixed|string  $environment
-     * @return AbstractProvider
      */
     public function setEnvironment(mixed $environment): AbstractProvider
     {
         $this->environment = $environment;
+
         return $this;
     }
-
 
     public function getTransaction()
     {
         return $this->transaction;
     }
 
-    /**
-     * @param  string  $url
-     * @return AbstractProvider
-     */
     public function setUrl(string $url): AbstractProvider
     {
         $this->url = $url;
@@ -188,56 +140,33 @@ abstract class AbstractProvider extends WalletProvider
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getUrl(): string
     {
         return $this->url;
     }
 
-    /**
-     * @param  string  $message
-     * @param  array  $params
-     * @param  string  $level
-     * @return void
-     */
     protected function log(string $message, array $params = [], string $level = 'debug'): void
     {
         $reflect = new ReflectionClass($this);
         $provider = strtolower(str_replace('Provider', '', $reflect->getShortName()));
 
-        $message = $provider.": ".$message;
+        $message = $provider.': '.$message;
 
         LaraWallet::log($message, $params, $level);
     }
 
-    /**
-     * @param $message
-     * @param  int  $statusCode
-     * @param  int|null  $errorCode
-     * @return JsonResponse
-     */
     public static function generalExceptionResponse(
         int $errorCode = null,
         $message = null,
         int $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR,
     ): JsonResponse {
         return response()->json([
-            "code" => $errorCode,
-            "message" => $message,
-            "x_track_id" => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
+            'code' => $errorCode,
+            'message' => $message,
+            'x_track_id' => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
         ], $statusCode);
     }
 
-
-    /**
-     * @param  int  $code
-     * @param  string|null  $value
-     * @param  array|null  $result
-     * @param  int  $statusCode
-     * @return JsonResponse
-     */
     public static function generalResponse(
         int $code = 0,
         string $value = null,
@@ -245,21 +174,15 @@ abstract class AbstractProvider extends WalletProvider
         int $statusCode = Response::HTTP_OK,
     ): JsonResponse {
         return response()->json([
-            "code" => $code,
-            "value" => $value,
-            "result" => $result,
-            "x_track_id" => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
+            'code' => $code,
+            'value' => $value,
+            'result' => $result,
+            'x_track_id' => resolve(env('XLOG_TRACK_ID_KEY', 'xTrackId')),
         ], $statusCode);
     }
 
-    /**
-     * @param $view
-     * @param $withErrors
-     * @return Factory|View|Application
-     */
     public static function generalViewErrorResponse($view, $withErrors): Factory|View|Application
     {
         return view($view)->withErrors([$withErrors]);
     }
-
 }

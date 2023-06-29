@@ -2,9 +2,6 @@
 
 namespace PhpMonsters\LaraWallet\Enums;
 
-/**
- *
- */
 enum AsanpardakhtStatusEnum: int
 {
     //----------------------generate by Asanpardakht-------------------
@@ -30,7 +27,6 @@ enum AsanpardakhtStatusEnum: int
     case VerifyRequestHop = 2001;
     case SettleRequestHop = 2002;
     case RefundRequestHop = 2003;
-
 
     //----------------------generate by code-------------------
     case SuccessResponse = 10001;

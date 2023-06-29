@@ -5,15 +5,10 @@ namespace PhpMonsters\LaraWallet;
 use Illuminate\Support\ServiceProvider;
 use PhpMonsters\LaraWallet\Contracts\Factory;
 
-/**
- *
- */
 class LaraWalletServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -24,21 +19,16 @@ class LaraWalletServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
         $this->registerPublishing();
     }
 
-    /**
-     * @return void
-     */
     protected function registerPublishing(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/wallet.php' => config_path('wallet.php')
+            __DIR__.'/../config/wallet.php' => config_path('wallet.php'),
         ], 'config');
     }
 }
