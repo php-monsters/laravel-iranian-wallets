@@ -35,7 +35,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 'mo' => $this->getCellNumber(),
                 'hi' => $this->getParameters('host_id'),
                 'walet' => 5,
-                'htran' => $this->getWalletChargeTransactionId,
+                'htran' => $this->getWalletChargeTransactionId(),
                 'hop' => AsanpardakhtStatusEnum::WalletBalanceHop->value,
                 'htime' => time(),
                 'hkey' => $this->getParameters('api_key'),
