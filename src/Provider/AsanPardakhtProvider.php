@@ -53,7 +53,7 @@ class AsanPardakhtProvider extends AbstractProvider
                 $credit = 0;
 
                 if (property_exists($responseJson, 'wball')) {
-                    $credit = $responseJson->wball / 10; // this API returns fucking RIAL!!!
+                    $credit = $responseJson->wball;
                 }
 
                 return self::generalResponse(
