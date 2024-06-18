@@ -151,7 +151,7 @@ class AsanPardakhtProvider extends AbstractProvider
 
             return self::generalResponse(
                 code: AsanpardakhtStatusEnum::FailedResponse->value,
-                value: $responseJson->stm,
+                value: $responseJson['stm'],
             );
         } catch (ServerException $exception) {
             if ($responseJson != '') {
